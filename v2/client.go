@@ -48,9 +48,9 @@ const (
 
 // Client is used to make twitter v2 API callouts.
 //
-// Authorizer is used to add auth to the request
+// # Authorizer is used to add auth to the request
 //
-// Client is the HTTP client to use for all requests
+// # Client is the HTTP client to use for all requests
 //
 // Host is the base URL to use like, https://api.twitter.com
 type Client struct {
@@ -2124,6 +2124,53 @@ func (c *Client) DeleteUserMutes(ctx context.Context, userID, targetUserID strin
 	if err := decoder.Decode(raw); err != nil {
 		return nil, &ResponseDecodeError{
 			Name:      "user delete mutes",
+			Err:       err,
+			RateLimit: rl,
+		}
+	}
+	raw.RateLimit = rl
+	return raw, nil
+}
+
+// TerminateAllConnections terminates all active streaming connections for the authenticated application
+func (c *Client) TerminateAllConnections(ctx context.Context) (*TerminateAllConnectionsResponse, error) {
+	ep := terminateAllConnectionsEndpoint.url(c.Host)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, ep, nil)
+	if err != nil {
+		return nil, fmt.Errorf("terminate all connections request: %w", err)
+	}
+	req.Header.Add("Accept", "application/json")
+	c.Authorizer.Add(req)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("terminate all connections response: %w", err)
+	}
+	defer resp.Body.Close()
+
+	decoder := json.NewDecoder(resp.Body)
+
+	rl := rateFromHeader(resp.Header)
+
+	if resp.StatusCode != http.StatusOK {
+		e := &ErrorResponse{}
+		if err := decoder.Decode(e); err != nil {
+			return nil, &HTTPError{
+				Status:     resp.Status,
+				StatusCode: resp.StatusCode,
+				URL:        resp.Request.URL.String(),
+				RateLimit:  rl,
+			}
+		}
+		e.StatusCode = resp.StatusCode
+		e.RateLimit = rl
+		return nil, e
+	}
+
+	raw := &TerminateAllConnectionsResponse{}
+	if err := decoder.Decode(raw); err != nil {
+		return nil, &ResponseDecodeError{
+			Name:      "terminate all connections",
 			Err:       err,
 			RateLimit: rl,
 		}

@@ -61,6 +61,7 @@ const (
 	dmMessageByConversationEndpoint               endpoint = "2/dm_conversations/{id}/messages"
 	dmConversationCreateEndpoint                  endpoint = "2/dm_conversations"
 	dmMessageByParticipantEndpoint                endpoint = "2/dm_conversations/with/{participant_id}/messages"
+	terminateAllConnectionsEndpoint               endpoint = "2/connections/all"
 
 	idTag          = "{id}"
 	participantTag = "{participant_id}"
