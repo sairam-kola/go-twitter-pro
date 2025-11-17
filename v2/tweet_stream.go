@@ -31,7 +31,7 @@ const (
 	ErrorMessageType SystemMessageType = "error"
 
 	tweetStart  = "data"
-	keepAliveTO = 21 * time.Second
+	keepAliveTO = 42 * time.Second
 
 	// TweetErrorType represents the tweet stream errors
 	TweetErrorType StreamErrorType = "tweet"
